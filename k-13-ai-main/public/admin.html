@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>New Character AI - 관리자 페이지</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="center-container">
+    <div class="login-card" style="min-width:400px;max-width:98vw;">
+      <h2 class="login-title">공지/업데이트 관리</h2>
+      <form id="admin-form">
+        <input type="password" id="adminPassword" placeholder="관리자 비밀번호" required><br>
+        <label for="notice">공지사항</label><br>
+        <textarea id="notice" rows="4" style="width:100%;margin-bottom:12px;"></textarea><br>
+        <label for="update">업데이트</label><br>
+        <textarea id="update" rows="4" style="width:100%;margin-bottom:12px;"></textarea><br>
+        <button type="submit">저장</button>
+      </form>
+      <div id="admin-msg" style="margin-top:10px;color:#e11d48;"></div>
+    </div>
+  </div>
+  <script src="/js/admin.js"></script>
+</body>
+</html> 

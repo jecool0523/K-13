@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>New Character AI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+  <div class="main-layout">
+    <!-- 모바일 햄버거 버튼 -->
+    <button id="side-toggle-btn" class="side-toggle-btn" aria-label="설정 열기">☰</button>
+    <!-- 좌측 패널 -->
+    <aside class="side-panel" id="side-panel">
+      <button id="side-close-btn" class="side-close-btn" aria-label="설정 닫기">×</button>
+      <div class="user-info">
+        <div class="user-avatar">
+          <img src="/images/character-profile.webp" alt="프로필">
+        </div>
+        <div class="user-meta">
+          <div class="user-id">아이디: <span id="user-email"></span></div>
+          <div class="user-nick">닉네임: <span id="user-nick"></span></div>
+        </div>
+      </div>
+      <div class="notice-section">
+        <h4>📢 공지사항</h4>
+        <div id="notice-content">여기에 공지사항이 들어갑니다.</div>
+      </div>
+      <div class="update-section">
+        <h4>🛠️ 업데이트</h4>
+        <ul>
+          <li>이미지 업로드 지원</li>
+          <li>일본어/한국어 동시 지원</li>
+        </ul>
+      </div>
+      <div class="model-section">
+        <label for="model-select">모델 선택</label>
+        <select id="model-select">
+          <option>Gemini 2.5 Pro</option>
+          <option>Gemini 2.5 Flash</option>
+          <option>Gemini 2.0 Flash</option>
+        </select>
+      </div>
+      <div class="chat-history-section">
+        <h4>💬 대화내역</h4>
+        <div id="chat-history-list">대화내역 리스트</div>
+      </div>
+      <div class="account-section">
+        <h4>⚙️ 계정 관리</h4>
+        <button onclick="location.href='/profile.html'">내 정보 관리</button>
+      </div>
+      <button class="logout-btn" id="logout-btn">로그아웃</button>
+    </aside>
+    <!-- 우측 채팅 영역 -->
+    <section class="chat-panel">
+      <div class="chat-header">
+        <img src="/images/kanade-profile.webp" alt="캐릭터" class="chat-profile-img">
+        <div>
+          <div class="chat-profile-name">요이사키 카나데</div>
+          <div class="chat-profile-desc">온라인</div>
+        </div>
+      </div>
+      <div id="chat-window" class="chat-window"></div>
+      <form id="chat-form" class="chat-form">
+        <input type="text" id="user-input" autocomplete="off" placeholder="메시지를 입력하세요...">
+        <button type="submit"><span>전송</span></button>
+      </form>
+    </section>
+  </div>
+  <script src="/js/chat.js"></script>
+</body>
+</html>

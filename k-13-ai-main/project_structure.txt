@@ -1,0 +1,3283 @@
+=== 폴더 구조 ===
+kanade-ai/
+├── public/
+│   ├── css/
+│   │   └── style.css
+│   ├── images/
+│   │   ├── emojis/
+│   │   │   ├── (물음표다섯개를띄우며)당황.png
+│   │   │   ├── (손을내밀며)네가필요해.gif
+│   │   │   ├── (작업도중)놀람.gif
+│   │   │   ├── (작업도중)뒤돌아보기.gif
+│   │   │   ├── 귀여운척.png
+│   │   │   ├── 기대중.png
+│   │   │   ├── 내놔.png
+│   │   │   ├── 노래부르기.png
+│   │   │   ├── 놀람.png
+│   │   │   ├── 눈치보는중.png
+│   │   │   ├── 만족스러운표정.png
+│   │   │   ├── 메롱.png
+│   │   │   ├── 메모.png
+│   │   │   ├── 부끄러움.png
+│   │   │   ├── 빤히쳐다보기.png
+│   │   │   ├── 쓰다듬어주기.png
+│   │   │   ├── 안돼애.png
+│   │   │   ├── 안아주기.png
+│   │   │   ├── 웃으며손내밀기.png
+│   │   │   ├── 음악감상.gif
+│   │   │   ├── 이거진짜에요.png
+│   │   │   ├── 인정ㄹㅇㅋㅋ.png
+│   │   │   ├── 잘자.png
+│   │   │   ├── 절망.gif
+│   │   │   ├── 좋아요버튼누르기.png
+│   │   │   ├── 지쳤어.png
+│   │   │   ├── 키보드연주.gif
+│   │   │   └── 헤드폰소리에집중.gif
+│   │   └── kanade-profile.webp
+│   ├── js/
+│   │   ├── admin.js
+│   │   ├── chat.js
+│   │   ├── login.js
+│   │   └── register.js
+│   ├── admin.html
+│   ├── chat.html
+│   ├── login.html
+│   └── register.html
+├── src/
+│   ├── auth.js
+│   ├── gemini.js
+│   ├── index.js
+│   └── utils.js
+├── readme.md
+└── wrangler.toml
+
+=== 제외된 폴더 정보 ===
+.git/ - Git 버전 관리 폴더입니다.
+
+=== 코드 파일 내용 ===
+
+===== public\admin.html =====
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - 카나데 챗봇</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>관리자 페이지</h2>
+                <p>공지사항 관리</p>
+            </div>
+
+            <div id="loginSection">
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="adminPassword" class="form-label">관리자 비밀번호</label>
+                        <input type="password" class="form-control" id="adminPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">로그인</button>
+                </form>
+            </div>
+
+            <div id="adminPanel" style="display: none;">
+                <form id="noticeForm">
+                    <div class="form-group">
+                        <label for="noticeContent" class="form-label">공지사항 내용</label>
+                        <textarea class="form-control" id="noticeContent" name="content" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">공지사항 업데이트</button>
+                </form>
+                <div class="text-center mt-3">
+                    <button id="logoutAdminBtn" class="btn btn-secondary w-100">로그아웃</button>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="error-message mt-3" style="display: none;"></div>
+            <div id="successMessage" class="success-message mt-3" style="display: none;"></div>
+        </div>
+    </div>
+    <script src="/js/admin.js"></script>
+</body>
+</html>
+
+==================================================
+
+===== public\chat.html =====
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카나데 챗봇</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <button id="sidebarToggle" class="sidebar-toggle"><i class="bi bi-list"></i></button>
+        
+        <div id="sidebar" class="sidebar p-3">
+            <div class="accordion" id="settingsAccordion">
+                <!-- 사용자 정보 -->
+                <div class="form-section">
+                    <h6><i class="bi bi-person-lines-fill"></i> | 사용자 정보</h6>
+                    <div id="userInfo"></div>
+                </div>
+                
+                <!-- 공지사항 -->
+                <div class="form-section notice-section">
+                    <h6><i class="bi bi-info-circle"></i> | 공지사항</h6>
+                    <p id="noticeContent"></p>
+                </div>
+
+                <!-- 대화내역 -->
+                <div class="form-section">
+                    <h6><i class="bi bi-card-list"></i> | 대화내역</h6>
+                    <button id="newConversationBtn" class="btn btn-primary w-100 mb-2">새 대화 시작</button>
+                    <div id="conversationList"></div>
+                </div>
+
+                <!-- 비밀번호 변경 -->
+                <div class="form-section">
+                    <h6><i class="bi bi-lock"></i> | 비밀번호 변경</h6>
+                    <form id="changePasswordForm">
+                        <input type="password" name="current_password" class="form-control mb-2" placeholder="현재 비밀번호" required>
+                        <input type="password" name="new_password" class="form-control mb-2" placeholder="새 비밀번호" required>
+                        <input type="password" name="confirm_password" class="form-control mb-2" placeholder="새 비밀번호 확인" required>
+                        <button type="submit" class="btn btn-secondary w-100">변경하기</button>
+                    </form>
+                </div>
+
+                <!-- 닉네임 변경 -->
+                <div class="form-section">
+                    <h6><i class="bi bi-people"></i> | 닉네임 변경</h6>
+                    <form id="changeNicknameForm">
+                        <input type="text" name="new_nickname" class="form-control mb-2" placeholder="새 닉네임" required>
+                        <button type="submit" class="btn btn-secondary w-100">변경하기</button>
+                    </form>
+                </div>
+
+                <!-- API 키 관리 -->
+                <div class="form-section">
+                    <h6><i class="bi bi-code-slash"></i> | 개인 API 키 관리</h6>
+                    <form id="apiKeyForm">
+                        <input type="password" name="api_key" id="apiKeyInput" class="form-control mb-2 masked-input" placeholder="개인 Gemini API 키">
+                        <div>
+                            <button type="submit" id="apiKeySubmitBtn" class="btn btn-secondary">등록하기</button>
+                            <button type="button" id="deleteApiKeyBtn" class="btn btn-danger" style="display: none;">삭제하기</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 로그아웃 -->
+                <button id="logoutBtn" class="btn btn-danger w-100">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="chat-main">
+            <!-- 채팅 헤더 (카나데 프로필 + 모델 선택 + 이미지 토글) -->
+            <div class="chat-header">
+                <div class="profile-section">
+                    <img src="/images/kanade-profile.webp" alt="카나데" class="profile-image">
+                    <div class="profile-info">
+                        <h5 class="profile-name">요이사키 카나데</h5>
+                        <p class="profile-status"><i class="bi bi-cloud-check-fill"></i> | 온라인</p>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <div class="model-selector-section">
+                        <label for="modelSelect" class="form-label">모델:</label>
+                        <select id="modelSelect" class="form-select model-select">
+                            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
+                            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                            <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash Lite</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option>
+                        </select>
+                    </div>
+                    
+                    <div class="image-toggle-section">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="imageToggle" checked>
+                            <label class="form-check-label" for="imageToggle">
+                                이미지 보여주기
+                            </label>
+                            <button type="button" class="btn btn-link p-0 ms-2" id="imageToggleInfo" data-bs-toggle="tooltip" data-bs-placement="bottom" title="카나데가 이미지를 보고 답변할지 결정합니다. 답변 속도가 느리다면 이 옵션을 꺼보세요.">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+                <div class="message assistant">
+                    <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+                    <div class="message-content">
+                        <div class="message-bubble">. . .</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button id="imageUploadBtn" class="upload-button" title="이미지 업로드">
+                        <i class="bi bi-image"></i>
+                    </button>
+                    <textarea id="messageInput" class="chat-input-field" placeholder="카나데에게 메시지 보내기... (Shift+Enter: 줄바꿈, Enter: 전송)" rows="1"></textarea>
+                    <button id="sendButton" class="send-button"><i class="bi bi-send-fill"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 업로드 진행률 모달 -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2"><i class="bi bi-cloud-arrow-up"></i> | 이미지 업로드 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/chat.js"></script>
+</body>
+</html>
+
+==================================================
+
+===== public\css\style.css =====
+:root {
+  --bg-color: #ffffff;
+  --button-color: #87CEEB;
+  --button-hover-color: #4682B4;
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --sidebar-bg: #f8f9fa;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.btn-primary {
+  background-color: var(--button-color) !important;
+  border-color: var(--button-color) !important;
+  color: var(--text-color) !important;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--button-hover-color) !important;
+  border-color: var(--button-hover-color) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+  background-color: #f8f9fa !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e6ea !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.chat-container {
+  height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  transition: margin-left 0.3s ease;
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  margin-left: -300px;
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background-color: var(--button-color);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--button-hover-color);
+  transform: scale(1.1);
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.message {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+}
+
+.message-bubble {
+  max-width: 100%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.message.user .message-bubble {
+  background-color: var(--button-color);
+  color: var(--text-color);
+}
+
+.message.assistant .message-bubble {
+  background-color: white;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.custom-emoji {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.emoji-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.9);
+}
+
+.chat-input {
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-field {
+  flex: 1;
+  border: 2px solid var(--border-color);
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  resize: none;
+  min-height: 50px;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.4;
+  padding: 15px 20px;
+}
+
+.chat-input-field:focus {
+  outline: none;
+  border-color: var(--button-color);
+}
+
+.chat-input-field::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-input-field::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.chat-input-field::-webkit-scrollbar-thumb {
+  background: var(--button-color);
+  border-radius: 10px;
+}
+
+.chat-input-field::-webkit-scrollbar-thumb:hover {
+  background: var(--button-hover-color);
+}
+
+.send-button {
+  background-color: var(--button-color);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-size: 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.send-button:hover {
+  background-color: var(--button-hover-color);
+  transform: scale(1.1);
+}
+
+.conversation-item {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.conversation-item:hover {
+  background-color: rgba(135, 206, 235, 0.1);
+}
+
+.conversation-item.active {
+    background-color: var(--button-color);
+    color: white;
+}
+
+.conversation-item.active:hover {
+    background-color: var(--button-hover-color);
+}
+
+.delete-conversation {
+  color: #dc3545;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.delete-conversation:hover {
+  color: #c82333;
+}
+
+.model-selector {
+  margin-bottom: 20px;
+}
+
+.model-option {
+  margin-bottom: 10px;
+}
+
+.model-description {
+  font-size: 12px;
+  color: #666;
+  margin-left: 20px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.form-section h6 {
+  margin-bottom: 15px;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.masked-input {
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+.login-container, .register-container, .admin-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  color: var(--text-color);
+  margin-bottom: 10px;
+}
+
+.auth-header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-control {
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--button-color);
+  box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.1);
+}
+
+.info-icon {
+  color: var(--button-color);
+  cursor: pointer;
+  margin-left: 8px;
+  transition: color 0.3s ease;
+}
+
+.info-icon:hover {
+  color: var(--button-hover-color);
+}
+
+.notice-section {
+  background-color: #e8f4f8;
+  border: 1px solid var(--button-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.notice-section h6 {
+  color: var(--button-hover-color);
+  margin-bottom: 10px;
+}
+
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.success-message {
+  color: #28a745;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* 채팅 헤더 스타일 */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: white;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--button-color);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.profile-status {
+  margin: 0;
+  font-size: 12px;
+  color: #28a745;
+  font-weight: 500;
+}
+
+.model-selector-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-selector-header .form-label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.model-select {
+  min-width: 180px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.model-select:focus {
+  border-color: var(--button-color);
+  box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.1);
+}
+
+/* 메시지 아바타 스타일 */
+.message-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.message.assistant {
+  align-items: flex-start;
+}
+
+.message.user .message-avatar {
+  display: none;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    position: fixed;
+    z-index: 999;
+    height: 100vh;
+  }
+  
+  .sidebar.collapsed {
+    margin-left: -100%;
+  }
+  
+  .chat-main {
+    margin-left: 0;
+  }
+  
+  .sidebar-toggle {
+    display: block;
+  }
+  
+  .message-content {
+    max-width: 85%;
+  }
+  
+  .chat-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .model-selector-header {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .model-select {
+    flex: 1;
+    min-width: auto;
+  }
+  
+  .profile-image {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .message-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .emoji-image {
+    width: 50px;
+    height: 50px;
+  }
+}
+/* 이미지 업로드 관련 스타일 */
+.upload-button {
+  background-color: var(--button-color);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-size: 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background-color: var(--button-hover-color);
+  transform: scale(1.1);
+}
+
+.upload-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.uploaded-image {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-info {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+/* 헤더 컨트롤 스타일 */
+.header-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.model-selector-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.image-toggle-section {
+    display: flex;
+    align-items: center;
+}
+
+.image-toggle-section .form-check {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.image-toggle-section .form-check-label {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.image-toggle-section .btn-link {
+    color: var(--button-color);
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.image-toggle-section .btn-link:hover {
+    color: var(--button-hover-color);
+}
+
+/* 모바일 반응형 개선 */
+@media (max-width: 768px) {
+    .header-controls {
+        width: 100%;
+        align-items: stretch;
+    }
+    
+    .model-selector-section {
+        justify-content: space-between;
+    }
+    
+    .image-toggle-section {
+        justify-content: space-between;
+    }
+    
+    .image-toggle-section .form-check {
+        flex: 1;
+        justify-content: space-between;
+    }
+}
+/* 시스템 메시지 스타일 */
+.system-message {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px dashed #dee2e6 !important;
+    font-style: italic;
+    font-size: 14px;
+    text-align: center;
+}
+
+.message.system {
+    justify-content: center;
+}
+
+.message.system .message-content {
+    max-width: 80%;
+}
+
+==================================================
+
+===== public\js\admin.js =====
+let isLoggedIn = false;
+
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const errorDiv = document.getElementById('errorMessage');
+    
+    try {
+        // Admin login is checked by trying to get the notice with the password.
+        // This is a simplified auth flow for the admin page.
+        const response = await fetch('/api/admin/notice'); // First get current notice
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // In a real app, you'd verify the password against the server.
+            // Here, we just check if the password is not empty for simplicity,
+            // as the actual check is on the server when updating.
+            // For the login simulation, we'll just proceed.
+            
+            isLoggedIn = true;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('noticeContent').value = data.notice;
+            errorDiv.style.display = 'none';
+            
+            // Store password in session storage to use for the update request.
+            sessionStorage.setItem('adminPassword', formData.get('password'));
+        } else {
+            errorDiv.textContent = '으....이....';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.textContent = '으....이....';
+        errorDiv.style.display = 'block';
+    }
+});
+
+document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    
+    try {
+        const response = await fetch('/api/admin/notice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                password: sessionStorage.getItem('adminPassword'),
+                content: formData.get('content')
+            })
+        });
+        
+        if (response.ok) {
+            successDiv.textContent = '공지사항이 업데이트되었습니다.';
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        } else {
+            errorDiv.textContent = '으....이....';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        }
+    } catch (error) {
+        errorDiv.textContent = '으....이....';
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+    }
+});
+
+document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+    isLoggedIn = false;
+    sessionStorage.removeItem('adminPassword');
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+});
+
+==================================================
+
+===== public\js\chat.js =====
+let currentConversationId = null;
+let userInfo = null;
+let lastUploadedImageData = null; // 🔧 추가: 마지막 업로드된 이미지 데이터 저장
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        console.log('페이지 로딩 시작 - 초기화 진행');
+        
+        // 인증 상태를 먼저 확인
+        const isAuthenticated = await checkAuthentication();
+        
+        if (!isAuthenticated) {
+            console.log('인증 실패 - 로그인 페이지로 리다이렉트');
+            window.location.href = '/login';
+            return;
+        }
+        
+        console.log('인증 성공 - 초기화 시작');
+        
+        // 인증된 경우에만 초기화 진행
+        await loadUserInfo();
+        await loadNotice();
+        await loadConversations();
+        
+        // 이벤트 리스너 설정
+        setupEventListeners();
+        
+        console.log('초기화 완료');
+    } catch (error) {
+        console.error('초기화 중 오류:', error);
+        window.location.href = '/login';
+    }
+});
+
+// 인증 상태 확인 함수
+async function checkAuthentication() {
+    try {
+        const response = await fetch('/api/user/info');
+        return response.ok;
+    } catch (error) {
+        console.error('인증 확인 실패:', error);
+        return false;
+    }
+}
+
+// 🔧 수정된 setupEventListeners 함수
+function setupEventListeners() {
+    // 이미지 토글 툴팁 초기화
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // 사이드바 토글
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+    
+    // 메시지 전송 - Enter 키 이벤트
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // 이미지 업로드 관련 이벤트
+    document.getElementById('imageUploadBtn').addEventListener('click', () => {
+        if (!userInfo.has_api_key) {
+            alert('이미지 업로드는 개인 Gemini API 키가 등록된 사용자만 이용할 수 있습니다.');
+            return;
+        }
+        document.getElementById('imageInput').click();
+    });
+    
+    document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+    
+    // 새 대화 시작 버튼
+    document.getElementById('newConversationBtn').addEventListener('click', startNewConversation);
+    
+    // 폼 이벤트들
+    document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
+    document.getElementById('changeNicknameForm').addEventListener('submit', changeNickname);
+    document.getElementById('apiKeyForm').addEventListener('submit', manageApiKey);
+    document.getElementById('deleteApiKeyBtn').addEventListener('click', deleteApiKey);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+}
+
+// 🔧 수정된 이미지 업로드 함수 (Workers 프록시 방식 + 자동 답변 제거)
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // 개인 API 키 재확인
+    if (!userInfo.has_api_key) {
+        alert('이미지 업로드는 개인 Gemini API 키가 등록된 사용자만 이용할 수 있습니다.');
+        return;
+    }
+    
+    // 파일 검증 (5MB로 수정)
+    if (!validateImageFile(file)) {
+        alert('지원하지 않는 파일 형식이거나 크기가 5MB를 초과합니다.');
+        return;
+    }
+    
+    // 대화방이 없으면 자동 생성
+    if (!currentConversationId) {
+        await startNewConversation();
+        if (!currentConversationId) {
+            alert('대화방 생성에 실패했습니다.');
+            return;
+        }
+    }
+    
+    const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+    
+    try {
+        uploadModal.show();
+        
+        // FormData 생성 (Workers 프록시 방식)
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('conversationId', currentConversationId);
+        
+        // Workers를 통해 직접 업로드
+        const uploadResponse = await fetch('/api/upload/direct', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            throw new Error(`업로드 실패: ${uploadResponse.status} - ${errorText}`);
+        }
+        
+        const { fileId, imageUrl, fileName } = await uploadResponse.json();
+        
+        // Base64 변환 (Gemini API용) - 나중에 사용하기 위해 저장
+        const base64Data = await fileToBase64(file);
+        lastUploadedImageData = {
+            base64Data: base64Data,
+            mimeType: file.type,
+            fileName: file.name
+        };
+        
+        // UI에 이미지만 표시 (🔧 자동 답변 제거)
+        addImageMessage('user', file.name, imageUrl);
+        await loadConversations();
+        
+        // 🔧 업로드 완료 메시지 표시
+        addMessage('system', '이미지가 업로드되었습니다. 메시지를 입력하면 카나데가 이미지를 참고해서 답변합니다.');
+        
+    } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        alert(`업로드 실패: ${error.message}`);
+    } finally {
+        uploadModal.hide();
+        event.target.value = '';
+    }
+}
+
+// Base64 변환 함수
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1]; // "data:image/jpeg;base64," 제거
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// 🔧 수정된 sendMessage 함수 (이미지 토글 확인)
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    const selectedModel = document.getElementById('modelSelect').value;
+    const imageToggle = document.getElementById('imageToggle').checked;
+    
+    // 대화방이 없으면 자동 생성
+    if (!currentConversationId) {
+        await startNewConversation();
+        if (!currentConversationId) {
+            alert('으....이....');
+            return;
+        }
+    }
+    
+    // 사용자 메시지 표시
+    addMessage('user', message);
+    input.value = '';
+    
+    // 로딩 표시
+    const loadingDiv = addMessage('assistant', '...');
+    
+    try {
+        // 요청 본문 구성
+        const requestBody = {
+            message,
+            model: selectedModel,
+            conversationId: currentConversationId
+        };
+        
+        // 🔧 이미지 토글이 켜져있고 마지막 업로드된 이미지가 있으면 포함
+        if (imageToggle && lastUploadedImageData) {
+            requestBody.imageData = lastUploadedImageData;
+        }
+        
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // 커스텀 이모지 파싱
+            const { text, emoji } = parseCustomEmoji(data.response);
+            
+            // 메시지 텍스트 업데이트
+            loadingDiv.textContent = text;
+            
+            // 이모지가 있으면 이미지로 표시
+            if (emoji) {
+                const emojiDiv = document.createElement('div');
+                emojiDiv.className = 'custom-emoji';
+                emojiDiv.innerHTML = `<img src="/images/emojis/${emoji}" alt="emoji" class="emoji-image">`;
+                
+                const messageContent = loadingDiv.parentElement;
+                messageContent.appendChild(emojiDiv);
+            }
+            
+            await loadConversations();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            loadingDiv.textContent = '으....이....';
+        }
+    } catch (error) {
+        loadingDiv.textContent = '으....이....';
+    }
+}
+
+// 🔧 수정된 이미지 파일 검증 (5MB로 변경)
+function validateImageFile(file) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 🔥 1MB → 5MB로 변경
+    
+    if (!allowedTypes.includes(file.type)) {
+        return false;
+    }
+    
+    if (file.size > maxSize || file.size <= 0) {
+        return false;
+    }
+    
+    return true;
+}
+
+// 이미지 메시지 추가
+function addImageMessage(role, fileName, imageUrl) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    if (role === 'user') {
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="image-message">
+                    <img src="${imageUrl}" alt="${fileName}" class="uploaded-image">
+                    <div class="image-info">${fileName}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+            <div class="message-content">
+                <div class="image-message">
+                    <img src="${imageUrl}" alt="${fileName}" class="uploaded-image">
+                    <div class="image-info">${fileName}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// 🔧 수정된 새 대화 시작 함수 (이미지 데이터 초기화)
+async function startNewConversation() {
+    try {
+        const response = await fetch('/api/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: `대화 ${new Date().toLocaleString()}` })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentConversationId = data.id;
+            
+            // 🔧 이미지 데이터 초기화
+            lastUploadedImageData = null;
+            
+            // 채팅 화면 초기화
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="message assistant">
+                    <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+                    <div class="message-content">
+                        <div class="message-bubble">. . .</div>
+                    </div>
+                </div>
+            `;
+            
+            await loadConversations();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            alert('으....이....');
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function loadUserInfo() {
+    try {
+        console.log('사용자 정보 로딩 시작');
+        const response = await fetch('/api/user/info');
+        console.log('사용자 정보 응답:', response.status);
+        
+        if (response.ok) {
+            userInfo = await response.json();
+            console.log('사용자 정보:', userInfo);
+            document.getElementById('userInfo').innerHTML = `
+                아이디: ${userInfo.username}<br>
+                닉네임: ${userInfo.nickname}
+            `;
+            
+            // API 키 관리 UI 업데이트
+            updateApiKeyUI();
+            
+            // 모델 선택 UI 업데이트
+            updateModelSelector();
+            
+            // 이미지 업로드 버튼 상태 업데이트
+            updateImageUploadButton();
+            
+        } else if (response.status === 401) {
+            console.log('인증 만료 - 로그인 페이지로 이동');
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        console.error('사용자 정보 로드 실패:', error);
+        window.location.href = '/login';
+    }
+}
+
+// 이미지 업로드 버튼 상태 업데이트
+function updateImageUploadButton() {
+    const uploadBtn = document.getElementById('imageUploadBtn');
+    if (uploadBtn) {
+        if (userInfo.has_api_key) {
+            uploadBtn.style.opacity = '1';
+            uploadBtn.style.cursor = 'pointer';
+            uploadBtn.title = '이미지 업로드';
+        } else {
+            uploadBtn.style.opacity = '0.5';
+            uploadBtn.style.cursor = 'not-allowed';
+            uploadBtn.title = '개인 API 키가 필요합니다';
+        }
+    }
+}
+
+async function loadNotice() {
+    try {
+        const response = await fetch('/api/admin/notice');
+        if (response.ok) {
+            const data = await response.json();
+            // 줄바꿈을 <br> 태그로 변환
+            const formattedNotice = data.notice.replace(/\n/g, '<br>');
+            document.getElementById('noticeContent').innerHTML = formattedNotice;
+        }
+    } catch (error) {
+        console.error('공지사항 로드 실패:', error);
+    }
+}
+
+async function loadConversations() {
+    try {
+        const response = await fetch('/api/conversations');
+        if (response.ok) {
+            const conversations = await response.json();
+            const listElement = document.getElementById('conversationList');
+            listElement.innerHTML = '';
+            
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = 'conversation-item';
+                if (conv.id === currentConversationId) {
+                    item.classList.add('active');
+                }
+                item.innerHTML = `
+                    <span onclick="loadConversation(${conv.id})" style="cursor: pointer; flex: 1;">
+                        ${conv.title}
+                    </span>
+                    <i class="bi bi-trash delete-conversation" onclick="deleteConversation(${conv.id})"></i>
+                `;
+                listElement.appendChild(item);
+            });
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        console.error('대화내역 로드 실패:', error);
+    }
+}
+
+async function loadConversation(id) {
+    currentConversationId = id;
+    
+    try {
+        const response = await fetch(`/api/conversations/${id}`);
+        if (response.ok) {
+            const messages = await response.json();
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+            
+            // 기본 인사말 추가
+            if (messages.length === 0) {
+                messagesDiv.innerHTML = `
+                    <div class="message assistant">
+                        <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-bubble">. . .</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messages.forEach(msg => {
+                    if (msg.message_type === 'image' && msg.filename) {
+                        // 이미지 메시지 표시
+                        addImageMessage(msg.role, msg.content, `/api/images/${msg.filename}`);
+                    } else {
+                        // 텍스트 메시지 표시 (이모지 파싱 포함)
+                        addMessage(msg.role, msg.content);
+                    }
+                });
+            }
+            
+            // 대화내역 목록에서 활성 상태 업데이트
+            await loadConversations();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+// 커스텀 이모지 파싱 함수 (한글 파일명 지원)
+function parseCustomEmoji(content) {
+    // 한글을 포함한 모든 문자를 매칭하는 정규표현식
+    const emojiRegex = /::([\가-힣\w\s\-_.ㄱ-ㅎㅏ-ㅣ]+\.(jpg|jpeg|png|gif))::/g;
+    const match = content.match(emojiRegex);
+    
+    if (match) {
+        const emojiFileName = match[0].replace(/::/g, '');
+        const text = content.replace(emojiRegex, '').trim();
+        return {
+            text: text,
+            emoji: emojiFileName
+        };
+    }
+    
+    return { text: content, emoji: null };
+}
+
+// 🔧 수정된 addMessage 함수 (시스템 메시지 지원)
+function addMessage(role, content) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    // 커스텀 이모지 처리
+    const { text, emoji } = parseCustomEmoji(content);
+    
+    if (role === 'assistant') {
+        messageDiv.innerHTML = `
+            <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+            <div class="message-content">
+                <div class="message-bubble">${text}</div>
+                ${emoji ? `<div class="custom-emoji"><img src="/images/emojis/${emoji}" alt="emoji" class="emoji-image"></div>` : ''}
+            </div>
+        `;
+    } else if (role === 'system') {
+        // 🔧 시스템 메시지 스타일
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-bubble system-message">${text}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-bubble">${text}</div>
+            </div>
+        `;
+    }
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    return messageDiv.querySelector('.message-bubble');
+}
+
+function updateApiKeyUI() {
+    const input = document.getElementById('apiKeyInput');
+    const submitBtn = document.getElementById('apiKeySubmitBtn');
+    const deleteBtn = document.getElementById('deleteApiKeyBtn');
+    
+    if (userInfo.has_api_key) {
+        input.value = '●●●●●●●●●●●●●●●●';
+        submitBtn.textContent = '변경하기';
+        deleteBtn.style.display = 'inline-block';
+    } else {
+        input.value = '';
+        submitBtn.textContent = '등록하기';
+        deleteBtn.style.display = 'none';
+    }
+}
+
+function updateModelSelector() {
+    // Pro 모델은 개인 API 키가 있을 때만 활성화
+    const modelSelect = document.getElementById('modelSelect');
+    const proOption = modelSelect.querySelector('option[value="gemini-2.5-pro"]');
+    
+    if (proOption) {
+        proOption.disabled = !userInfo.has_api_key;
+        
+        // Pro 모델이 선택되어 있는데 API 키가 없으면 기본 모델로 변경
+        if (!userInfo.has_api_key && modelSelect.value === 'gemini-2.5-pro') {
+            modelSelect.value = 'gemini-2.5-flash';
+        }
+    }
+}
+
+// 나머지 함수들은 기존과 동일
+async function changePassword(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const newPassword = formData.get('new_password');
+    const confirmPassword = formData.get('confirm_password');
+    
+    if (newPassword !== confirmPassword) {
+        alert('으....이....');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'password',
+                current_password: formData.get('current_password'),
+                new_password: newPassword
+            })
+        });
+        
+        if (response.ok) {
+            alert('비밀번호가 변경되었습니다.');
+            e.target.reset();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            alert('으....이....');
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function changeNickname(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'nickname',
+                new_nickname: formData.get('new_nickname')
+            })
+        });
+        
+        if (response.ok) {
+            alert('닉네임이 변경되었습니다.');
+            e.target.reset();
+            await loadUserInfo();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            alert('으....이....');
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function manageApiKey(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const apiKey = formData.get('api_key');
+    
+    if (apiKey === '●●●●●●●●●●●●●●●●') {
+        alert('으....이....');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'api_key',
+                api_key: apiKey
+            })
+        });
+        
+        if (response.ok) {
+            alert('API 키가 등록/변경되었습니다.');
+            await loadUserInfo();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            alert('으....이....');
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function deleteApiKey() {
+    if (!confirm('API 키를 삭제하시겠습니까?')) return;
+    
+    try {
+        const response = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'delete_api_key'
+            })
+        });
+        
+        if (response.ok) {
+            alert('API 키가 삭제되었습니다.');
+            await loadUserInfo();
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        } else {
+            alert('으....이....');
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/'; // 루트 페이지로 이동
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+async function deleteConversation(id) {
+    if (!confirm('대화내역을 삭제하시겠습니까?')) return;
+    
+    try {
+        const response = await fetch(`/api/conversations/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadConversations();
+            if (currentConversationId === id) {
+                currentConversationId = null;
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message assistant">
+                        <img src="/images/kanade-profile.webp" alt="카나데" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-bubble">안녕… 카나데야. 무슨 일이든 말해줘.</div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (response.status === 401) {
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        alert('으....이....');
+    }
+}
+
+==================================================
+
+===== public\js\login.js =====
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const errorDiv = document.getElementById('errorMessage');
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    
+    // 버튼 비활성화
+    submitButton.disabled = true;
+    submitButton.textContent = '로그인 중...';
+    
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+            // 쿠키 설정을 위한 충분한 지연
+            setTimeout(() => {
+                // 캐시 방지를 위한 타임스탬프 추가
+                window.location.href = `/chat?t=${Date.now()}`;
+            }, 300);
+        } else {
+            errorDiv.textContent = '으....이....';
+            errorDiv.style.display = 'block';
+            submitButton.disabled = false;
+            submitButton.textContent = '로그인';
+        }
+    } catch (error) {
+        errorDiv.textContent = '으....이....';
+        errorDiv.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.textContent = '로그인';
+    }
+});
+
+==================================================
+
+===== public\js\register.js =====
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            successDiv.textContent = '회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.';
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            errorDiv.textContent = '으....이....';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        }
+    } catch (error) {
+        errorDiv.textContent = '으....이....';
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+    }
+});
+
+==================================================
+
+===== public\login.html =====
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 카나데 챗봇</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>카나데 챗봇</h2>
+                <p>로그인</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">아이디</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">비밀번호</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABkrf7cd8w3d1nxe"></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">로그인</button>
+                <div class="text-center mt-3">
+                    <a href="/register" class="btn btn-secondary w-100">회원가입</a>
+                </div>
+            </form>
+            <div id="errorMessage" class="error-message mt-3" style="display: none;"></div>
+        </div>
+    </div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="/js/login.js"></script>
+</body>
+</html>
+
+==================================================
+
+===== public\register.html =====
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 카나데 챗봇</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="register-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>회원가입</h2>
+                <p>계정을 생성하여 카나데와 대화해보세요</p>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">아이디</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">비밀번호</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="nickname" class="form-label">닉네임</label>
+                    <input type="text" class="form-control" id="nickname" name="nickname" required>
+                </div>
+                <div class="form-group">
+                    <label for="gemini_api_key" class="form-label">
+                        개인 Gemini API 키
+                        <i class="bi bi-info-circle-fill info-icon" data-bs-toggle="modal" data-bs-target="#apiKeyModal"></i>
+                    </label>
+                    <input type="password" class="form-control masked-input" id="gemini_api_key" name="gemini_api_key">
+                </div>
+                <div class="form-group">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABkrf7cd8w3d1nxe"></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">회원가입</button>
+                <div class="text-center mt-3">
+                    <a href="/login" class="btn btn-secondary w-100">로그인</a>
+                </div>
+            </form>
+            <div id="errorMessage" class="error-message mt-3" style="display: none;"></div>
+            <div id="successMessage" class="success-message mt-3" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- API Key Info Modal -->
+    <div class="modal fade" id="apiKeyModal" tabindex="-1" aria-labelledby="apiKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="apiKeyModalLabel">개인 Gemini API 키 안내</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>개인 Gemini API 미입력시 서버측 API 키를 공유해 사용합니다. 서버측 API 키는 동시 접속자 모두가 사용량을 공유하기에, 동시접속자가 많을 경우 이용이 원활하지 않을 수 있습니다.(물론 동시접속자가 거의 없는 허접사이트긴 하지만)</p>
+                    <p>개인 API키를 사용시 서버 전체가 공유하는 할당량과 별개의 할당량을 온전히 혼자서 사용할 수 있으며, Gemini-2.5-pro 모델을 사용 가능합니다. 개인 API키는 언제든 삭제할 수 있으며, 삭제 요청 또는 회원탈퇴시 즉시 삭제됩니다.</p>
+                    <p>Gemini API 키는 <a href="https://aistudio.google.com" target="_blank">https://aistudio.google.com</a> 에서 개인 구글계정(깡계도 가능)을 이용해 무료로 발급받을 수 있으며, 따로 결제 설정을 하지 않는다면 아무리 많이 사용을 시도해도 요금이 발생하지 않습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="/js/register.js"></script>
+</body>
+</html>
+
+==================================================
+
+===== src\auth.js =====
+import { generateSalt, hashPassword, verifyPassword } from './utils.js';
+import { logError, logDebug } from './utils.js';
+
+export const handleAuth = {
+  async login(request, env) {
+    try {
+      const formData = await request.formData();
+      const username = formData.get('username');
+      const password = formData.get('password');
+      const turnstileToken = formData.get('cf-turnstile-response');
+      
+      logDebug('로그인 시도', 'Auth Login', { username });
+      
+      // Turnstile 검증
+      const turnstileValid = await verifyTurnstile(turnstileToken, env);
+      if (!turnstileValid) {
+        logDebug('Turnstile 검증 실패', 'Auth Login');
+        return new Response('으....이....', { status: 400 });
+      }
+      
+      // 사용자 조회
+      const user = await env.DB.prepare('SELECT * FROM users WHERE username = ?')
+        .bind(username).first();
+      
+      if (!user || !(await verifyPassword(password, user.password_hash, user.salt))) {
+        logDebug('사용자 인증 실패', 'Auth Login');
+        return new Response('으....이....', { status: 401 });
+      }
+      
+      // JWT 토큰 생성 (만료 시간 연장)
+      const token = btoa(JSON.stringify({ 
+        userId: user.id, 
+        exp: Date.now() + (24 * 60 * 60 * 1000), // 24시간
+        iat: Date.now() // 발급 시간 추가
+      }));
+      
+      logDebug('토큰 생성 완료', 'Auth Login', { userId: user.id, tokenLength: token.length });
+      
+      const url = new URL(request.url);
+      const isSecure = url.protocol === 'https:';
+      
+      const response = new Response(JSON.stringify({ success: true }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+      
+      // 쿠키 설정 강화
+      const cookieOptions = [
+        `token=${token}`,
+        'HttpOnly',
+        'SameSite=Lax',
+        'Max-Age=86400',
+        'Path=/'
+      ];
+      
+      // 도메인 설정 개선
+      if (!url.hostname.includes('localhost') && 
+          !url.hostname.includes('127.0.0.1') && 
+          !url.hostname.includes('.local')) {
+        cookieOptions.push(`Domain=${url.hostname}`);
+      }
+      
+      if (isSecure) {
+        cookieOptions.push('Secure');
+      }
+      
+      const cookieString = cookieOptions.join('; ');
+      logDebug('쿠키 설정', 'Auth Login', { cookie: cookieString.substring(0, 100) + '...' });
+      
+      response.headers.set('Set-Cookie', cookieString);
+      
+      return response;
+    } catch (error) {
+      await logError(error, env, 'Auth Login');
+      return new Response('으....이....', { status: 500 });
+    }
+  },
+  
+  async register(request, env) {
+    try {
+      const formData = await request.formData();
+      const username = formData.get('username');
+      const password = formData.get('password');
+      const nickname = formData.get('nickname');
+      const geminiApiKey = formData.get('gemini_api_key') || null;
+      const turnstileToken = formData.get('cf-turnstile-response');
+      
+      // Turnstile 검증
+      const turnstileValid = await verifyTurnstile(turnstileToken, env);
+      if (!turnstileValid) {
+        return new Response('으....이....', { status: 400 });
+      }
+      
+      // 중복 사용자 확인
+      const existingUser = await env.DB.prepare('SELECT id FROM users WHERE username = ?')
+        .bind(username).first();
+      
+      if (existingUser) {
+        return new Response('으....이....', { status: 409 });
+      }
+      
+      // 비밀번호 해싱
+      const salt = generateSalt();
+      const passwordHash = await hashPassword(password, salt);
+      
+      // 사용자 생성
+      await env.DB.prepare(
+        'INSERT INTO users (username, nickname, password_hash, salt, gemini_api_key) VALUES (?, ?, ?, ?, ?)'
+      ).bind(username, nickname, passwordHash, salt, geminiApiKey).run();
+      
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      await logError(error, env, 'Auth Register');
+      return new Response('으....이....', { status: 500 });
+    }
+  },
+  
+  async logout(request, env) {
+    const url = new URL(request.url);
+    const isSecure = url.protocol === 'https:';
+    
+    const response = new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const cookieOptions = [
+      'token=',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Max-Age=0',
+      'Path=/'
+    ];
+    
+    if (!url.hostname.includes('localhost') && 
+        !url.hostname.includes('127.0.0.1') && 
+        !url.hostname.includes('.local')) {
+      cookieOptions.push(`Domain=${url.hostname}`);
+    }
+    
+    if (isSecure) {
+      cookieOptions.push('Secure');
+    }
+    
+    response.headers.set('Set-Cookie', cookieOptions.join('; '));
+    return response;
+  }
+};
+
+async function verifyTurnstile(token, env) {
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: env.TURNSTILE_SECRET_KEY,
+        response: token
+      })
+    });
+    
+    const result = await response.json();
+    return result.success;
+  } catch {
+    return false;
+  }
+}
+
+==================================================
+
+===== src\gemini.js =====
+import { logError } from './utils.js';
+
+export async function handleChat(request, env) {
+  try {
+    const { message, model, conversationId, imageData } = await request.json();
+    
+    // 사용자 인증 확인
+    const user = await getUserFromToken(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    // 대화 기록 조회
+    const history = await getChatHistory(conversationId, env);
+    
+    // SYSTEM_PROMPT를 env 변수에서 가져오기
+    const systemPrompt = env.SYSTEM_PROMPT;
+    
+    // 현재 시간 (서울/도쿄 기준)
+    const currentTime = getCurrentSeoulTime();
+    
+    // 최신 이미지 조회 (이미지가 있는 경우에만)
+    let latestImageData = null;
+    if (imageData) {
+      // 현재 업로드된 이미지 사용
+      latestImageData = imageData;
+    } else {
+      // 대화 기록에서 최신 이미지 찾기
+      latestImageData = await getLatestImageFromHistory(conversationId, env);
+    }
+    
+    // Gemini API 호출
+    const apiKey = user.gemini_api_key || env.GEMINI_API_KEY;
+    const response = await callGeminiAPI(message, model, history, user.nickname, apiKey, systemPrompt, currentTime, latestImageData);
+    
+    // 대화 기록 저장
+    await saveChatMessage(conversationId, 'user', message, env);
+    await saveChatMessage(conversationId, 'assistant', response, env);
+    
+    return new Response(JSON.stringify({ response }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Gemini Chat');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function callGeminiAPI(message, model, history, nickname, apiKey, systemPrompt, currentTime, imageData = null) {
+  try {
+    const historyText = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    
+    const textPrompt = `시스템 프롬프트
+${systemPrompt}
+
+현재 시간: ${currentTime}
+대화 상대의 닉네임은 ${nickname} 입니다.
+
+기존 대화기록
+${historyText}
+
+메시지
+${message}`;
+
+    // 요청 본문 구성
+    const requestBody = {
+      contents: [{
+        parts: [{ text: textPrompt }]
+      }]
+    };
+
+    // 이미지 데이터가 있을 때만 추가
+    if (imageData && imageData.base64Data && imageData.mimeType) {
+      requestBody.contents[0].parts.push({
+        inline_data: {
+          mime_type: imageData.mimeType,
+          data: imageData.base64Data
+        }
+      });
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+    
+    return data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// 최신 이미지 조회 함수
+async function getLatestImageFromHistory(conversationId, env) {
+  if (!conversationId) {
+    return null;
+  }
+  
+  try {
+    const result = await env.DB.prepare(
+      `SELECT f.filename, f.mime_type 
+       FROM messages m 
+       JOIN files f ON m.file_id = f.id 
+       WHERE m.conversation_id = ? AND m.message_type = 'image' 
+       ORDER BY m.created_at DESC 
+       LIMIT 1`
+    ).bind(conversationId).first();
+    
+    if (!result) {
+      return null;
+    }
+    
+    // R2에서 이미지 데이터 가져오기
+    const r2Key = `image_uploads/${result.filename}`;
+    const object = await env.R2.get(r2Key);
+    
+    if (!object) {
+      return null;
+    }
+    
+    const arrayBuffer = await object.arrayBuffer();
+    const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    
+    return {
+      base64Data: base64Data,
+      mimeType: result.mime_type
+    };
+  } catch (error) {
+    console.error('최신 이미지 조회 실패:', error);
+    return null;
+  }
+}
+
+function getCurrentSeoulTime() {
+  const now = new Date();
+  const seoulTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+  
+  const year = seoulTime.getFullYear();
+  const month = String(seoulTime.getMonth() + 1).padStart(2, '0');
+  const day = String(seoulTime.getDate()).padStart(2, '0');
+  const hours = String(seoulTime.getHours()).padStart(2, '0');
+  const minutes = String(seoulTime.getMinutes()).padStart(2, '0');
+  
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekday = weekdays[seoulTime.getDay()];
+  
+  return `${year}년 ${month}월 ${day}일 ${weekday}요일 ${hours}시 ${minutes}분 (서울/도쿄 기준)`;
+}
+
+async function getUserFromToken(request, env) {
+  const cookies = request.headers.get('Cookie');
+  if (!cookies) return null;
+  
+  const tokenMatch = cookies.match(/token=([^;]+)/);
+  if (!tokenMatch) return null;
+  
+  try {
+    const tokenData = JSON.parse(atob(tokenMatch[1]));
+    if (tokenData.exp < Date.now()) {
+        return null;
+    }
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(tokenData.userId).first();
+    return user;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function getChatHistory(conversationId, env) {
+    if (!conversationId) {
+        return [];
+    }
+    const { results } = await env.DB.prepare(
+        "SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY created_at ASC"
+    ).bind(conversationId).all();
+    return results;
+}
+
+async function saveChatMessage(conversationId, role, content, env) {
+    if (conversationId) {
+        await env.DB.prepare(
+            "INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)"
+        ).bind(conversationId, role, content).run();
+    }
+}
+
+==================================================
+
+===== src\index.js =====
+import { handleAuth } from './auth.js';
+import { handleChat } from './gemini.js';
+import { logError, logDebug, getDebugLogs, clearDebugLogs, generateSalt, hashPassword, verifyPassword } from './utils.js';
+
+export default {
+  async fetch(request, env, ctx) {
+    try {
+      const url = new URL(request.url);
+      const path = url.pathname;
+      
+      logDebug(`요청 받음: ${request.method} ${path}`, 'Main Router');
+      
+      // 정적 파일 서빙 (이미지 경로 추가)
+      if (path.startsWith('/css/') || path.startsWith('/js/') || path.startsWith('/images/')) {
+        return handleStaticFiles(path, env);
+      }
+      
+      // API 라우팅
+      if (path.startsWith('/api/')) {
+        return handleAPI(request, env, path);
+      }
+      
+      // 페이지 라우팅
+      return handlePages(request, env);
+    } catch (error) {
+      await logError(error, env, 'Main Router');
+      return new Response('으....이....', { status: 500 });
+    }
+  }
+};
+
+// 정적 파일 서빙 함수
+async function handleStaticFiles(path, env) {
+  try {
+    logDebug(`정적 파일 요청: ${path}`, 'Static Files');
+    
+    if (env.ASSETS) {
+      const file = await env.ASSETS.fetch(new Request(`https://dummy${path}`));
+      logDebug(`정적 파일 제공 성공: ${path}`, 'Static Files');
+      return file;
+    } else {
+      logDebug('ASSETS 바인딩 없음', 'Static Files');
+      return new Response('정적 파일 서비스를 사용할 수 없습니다', { status: 503 });
+    }
+  } catch (error) {
+    await logError(error, env, 'Static Files');
+    return new Response('정적 파일 로드 오류', { status: 500 });
+  }
+}
+
+// API 라우팅 함수
+async function handleAPI(request, env, path) {
+  const method = request.method;
+  
+  logDebug(`API 요청: ${method} ${path}`, 'API Router');
+  
+  switch (path) {
+    case '/api/auth/login':
+      if (method === 'POST') return handleAuth.login(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/auth/register':
+      if (method === 'POST') return handleAuth.register(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/auth/logout':
+      if (method === 'POST') return handleAuth.logout(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/chat':
+      if (method === 'POST') return handleChat(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/user/info':
+      if (method === 'GET') return getUserInfo(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/conversations':
+      if (method === 'GET') return handleConversations(request, env);
+      if (method === 'POST') return createConversation(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/user/update':
+      if (method === 'POST') return handleUserUpdate(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/admin/notice':
+      if (method === 'GET') return getNotice(request, env);
+      if (method === 'POST') return updateNotice(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/admin/login':
+      if (method === 'POST') return adminLogin(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/debug/logs':
+      if (method === 'GET') return getDebugLogsAPI(request, env);
+      if (method === 'DELETE') return clearDebugLogsAPI(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    case '/api/debug/auth':
+      if (method === 'GET') return debugAuthStatus(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    // 🔧 변경: presigned URL 대신 직접 업로드 처리
+    case '/api/upload/direct':
+      if (method === 'POST') return handleDirectUpload(request, env);
+      return new Response('으....이....', { status: 405 });
+      
+    default:
+      // 대화방 개별 조회/삭제 처리
+      const conversationMatch = path.match(/^\/api\/conversations\/(\d+)$/);
+      if (conversationMatch) {
+        const conversationId = parseInt(conversationMatch[1]);
+        if (method === 'GET') return getConversationMessages(request, env, conversationId);
+        if (method === 'DELETE') return deleteConversation(request, env, conversationId);
+        return new Response('으....이....', { status: 405 });
+      }
+      
+      // 업로드된 이미지 서빙
+      const imageMatch = path.match(/^\/api\/images\/(.+)$/);
+      if (imageMatch) {
+        const fileName = imageMatch[1];
+        if (method === 'GET') return serveImage(request, env, fileName);
+        return new Response('으....이....', { status: 405 });
+      }
+      
+      return new Response('으....이....', { status: 404 });
+  }
+}
+
+// 페이지 라우팅 함수
+async function handlePages(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  let fileName = '';
+  
+  logDebug(`페이지 요청: ${path}`, 'Page Router');
+  
+  switch (path) {
+    case '/':
+      logDebug('랜딩 페이지 요청', 'Page Router');
+      return getLandingPage();
+      
+    case '/chat':
+      logDebug('채팅 페이지 요청', 'Page Router');
+      fileName = 'chat.html';
+      break;
+      
+    case '/login':
+      logDebug('로그인 페이지 요청', 'Page Router');
+      fileName = 'login.html';
+      break;
+      
+    case '/register':
+      logDebug('회원가입 페이지 요청', 'Page Router');
+      fileName = 'register.html';
+      break;
+      
+    case '/admin':
+      logDebug('관리자 페이지 요청', 'Page Router');
+      fileName = 'admin.html';
+      break;
+      
+    case '/debug':
+      return getDebugPage(request, env);
+      
+    default:
+      logDebug(`알 수 없는 페이지 요청: ${path}`, 'Page Router');
+      return new Response('으....이....', { status: 404 });
+  }
+  
+  try {
+    if (env.ASSETS) {
+      const file = await env.ASSETS.fetch(new Request(`https://dummy/${fileName}`));
+      logDebug(`파일 제공 성공: ${fileName}`, 'Page Router');
+      return file;
+    } else {
+      logDebug('ASSETS 바인딩 없음', 'Page Router');
+      return new Response('정적 파일 서비스를 사용할 수 없습니다', { status: 503 });
+    }
+  } catch (error) {
+    await logError(error, env, 'Page Routing');
+    return new Response('으....이....', { status: 404 });
+  }
+}
+
+// 🔧 새로운 직접 업로드 처리 함수
+async function handleDirectUpload(request, env) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user || !user.gemini_api_key) {
+      return new Response('으....이....', { status: 403 });
+    }
+    
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const conversationId = formData.get('conversationId');
+    
+    if (!file) {
+      return new Response('으....이....', { status: 400 });
+    }
+    
+    // 파일 검증
+    if (!validateFile(file.name, file.size, file.type)) {
+      return new Response('으....이....', { status: 400 });
+    }
+    
+    // 고유 파일명 생성
+    const uniqueFileName = generateUniqueFileName(file.name);
+    const r2Key = `image_uploads/${uniqueFileName}`;
+    
+    // R2에 직접 업로드 (바인딩 사용)
+    await env.R2.put(r2Key, file.stream(), {
+      httpMetadata: {
+        contentType: file.type,
+      },
+    });
+    
+    // 파일 메타데이터 DB 저장
+    const fileResult = await env.DB.prepare(
+      'INSERT INTO files (user_id, filename, original_name, file_size, mime_type, r2_key) VALUES (?, ?, ?, ?, ?, ?) RETURNING id'
+    ).bind(user.id, uniqueFileName, file.name, file.size, file.type, r2Key).run();
+    
+    const fileId = fileResult.meta.last_row_id;
+    
+    // 이미지 메시지 생성
+    await env.DB.prepare(
+      'INSERT INTO messages (conversation_id, role, content, message_type, file_id) VALUES (?, ?, ?, ?, ?)'
+    ).bind(conversationId, 'user', file.name, 'image', fileId).run();
+    
+    return new Response(JSON.stringify({
+      success: true,
+      fileId,
+      imageUrl: `/api/images/${uniqueFileName}`,
+      fileName: uniqueFileName
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Direct Upload');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function serveImage(request, env, fileName) {
+  try {
+    const r2Key = `image_uploads/${fileName}`;
+    const object = await env.R2.get(r2Key);
+    
+    if (!object) {
+      return new Response('으....이....', { status: 404 });
+    }
+    
+    const headers = new Headers();
+    headers.set('Content-Type', object.httpMetadata.contentType || 'image/jpeg');
+    headers.set('Cache-Control', 'public, max-age=31536000');
+    
+    return new Response(object.body, { headers });
+  } catch (error) {
+    await logError(error, env, 'Serve Image');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+// 🔧 강화된 파일 검증 함수
+function validateFile(fileName, fileSize, mimeType) {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  
+  // MIME 타입 검증
+  if (!allowedTypes.includes(mimeType)) {
+    return false;
+  }
+  
+  // 파일 크기 검증
+  if (fileSize > maxSize || fileSize <= 0) {
+    return false;
+  }
+  
+  // 파일명 검증
+  if (!fileName || fileName.length > 255) {
+    return false;
+  }
+  
+  // 확장자 검증
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+  
+  if (!ext || !allowedExts.includes(ext)) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 고유 파일명 생성 함수
+function generateUniqueFileName(originalName) {
+  const ext = originalName.split('.').pop();
+  const uuid = crypto.randomUUID();
+  const timestamp = Date.now();
+  return `${uuid}_${timestamp}.${ext}`;
+}
+
+// 사용자 인증 확인 함수
+async function getUserFromRequest(request, env) {
+  try {
+    const cookies = request.headers.get('Cookie');
+    
+    if (!cookies) {
+      return null;
+    }
+    
+    const tokenMatch = cookies.match(/token=([^;]+)/);
+    if (!tokenMatch) {
+      return null;
+    }
+    
+    let tokenData;
+    try {
+      tokenData = JSON.parse(atob(tokenMatch[1]));
+    } catch (decodeError) {
+      return null;
+    }
+    
+    // 토큰 만료 확인
+    if (tokenData.exp < Date.now()) {
+      return null;
+    }
+    
+    // 사용자 조회
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?')
+      .bind(tokenData.userId).first();
+    
+    return user;
+  } catch (error) {
+    console.error('인증 확인 중 오류:', error);
+    return null;
+  }
+}
+
+// 나머지 API 함수들 (기존과 동일)
+async function getUserInfo(request, env) {
+  try {
+    logDebug('사용자 정보 조회 요청', 'Get User Info');
+    
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      logDebug('인증되지 않은 사용자 - 401 응답', 'Get User Info');
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const userInfo = {
+      username: user.username,
+      nickname: user.nickname,
+      has_api_key: !!user.gemini_api_key
+    };
+    
+    logDebug('사용자 정보 조회 성공', 'Get User Info', userInfo);
+    
+    return new Response(JSON.stringify(userInfo), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Get User Info');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function handleConversations(request, env) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const { results } = await env.DB.prepare(
+      'SELECT id, title, created_at FROM conversations WHERE user_id = ? ORDER BY created_at DESC'
+    ).bind(user.id).all();
+    
+    return new Response(JSON.stringify(results || []), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Handle Conversations');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function createConversation(request, env) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const body = await request.json().catch(() => ({}));
+    const title = body.title || `대화 ${new Date().toLocaleString('ko-KR')}`;
+    
+    const result = await env.DB.prepare(
+      'INSERT INTO conversations (user_id, title) VALUES (?, ?) RETURNING id'
+    ).bind(user.id, title).run();
+    
+    return new Response(JSON.stringify({ id: result.meta.last_row_id }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Create Conversation');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function getConversationMessages(request, env, conversationId) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const conversation = await env.DB.prepare(
+      'SELECT id FROM conversations WHERE id = ? AND user_id = ?'
+    ).bind(conversationId, user.id).first();
+    
+    if (!conversation) {
+      return new Response('으....이....', { status: 404 });
+    }
+    
+    const { results } = await env.DB.prepare(
+      `SELECT m.role, m.content, m.created_at, m.message_type, m.file_id, f.filename 
+       FROM messages m 
+       LEFT JOIN files f ON m.file_id = f.id 
+       WHERE m.conversation_id = ? 
+       ORDER BY m.created_at ASC`
+    ).bind(conversationId).all();
+    
+    return new Response(JSON.stringify(results || []), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Get Conversation Messages');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function deleteConversation(request, env, conversationId) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const conversation = await env.DB.prepare(
+      'SELECT id FROM conversations WHERE id = ? AND user_id = ?'
+    ).bind(conversationId, user.id).first();
+    
+    if (!conversation) {
+      return new Response('으....이....', { status: 404 });
+    }
+    
+    await env.DB.prepare('DELETE FROM messages WHERE conversation_id = ?').bind(conversationId).run();
+    await env.DB.prepare('DELETE FROM conversations WHERE id = ?').bind(conversationId).run();
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Delete Conversation');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function handleUserUpdate(request, env) {
+  try {
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    const { type, ...data } = await request.json();
+    
+    switch (type) {
+      case 'password':
+        const { current_password, new_password } = data;
+        const isValidPassword = await verifyPassword(current_password, user.password_hash, user.salt);
+        
+        if (!isValidPassword) {
+          return new Response('으....이....', { status: 400 });
+        }
+        
+        const salt = generateSalt();
+        const passwordHash = await hashPassword(new_password, salt);
+        
+        await env.DB.prepare(
+          'UPDATE users SET password_hash = ?, salt = ? WHERE id = ?'
+        ).bind(passwordHash, salt, user.id).run();
+        break;
+        
+      case 'nickname':
+        await env.DB.prepare(
+          'UPDATE users SET nickname = ? WHERE id = ?'
+        ).bind(data.new_nickname, user.id).run();
+        break;
+        
+      case 'api_key':
+        await env.DB.prepare(
+          'UPDATE users SET gemini_api_key = ? WHERE id = ?'
+        ).bind(data.api_key || null, user.id).run();
+        break;
+        
+      case 'delete_api_key':
+        await env.DB.prepare(
+          'UPDATE users SET gemini_api_key = NULL WHERE id = ?'
+        ).bind(user.id).run();
+        break;
+        
+      default:
+        return new Response('으....이....', { status: 400 });
+    }
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Handle User Update');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function getNotice(request, env) {
+  try {
+    const result = await env.DB.prepare('SELECT content FROM notices ORDER BY id DESC LIMIT 1').first();
+    return new Response(JSON.stringify({ notice: result?.content || '' }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Get Notice');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function updateNotice(request, env) {
+  try {
+    const { password, content } = await request.json();
+    
+    if (password !== env.ADMIN_PASSWORD) {
+      return new Response('으....이....', { status: 401 });
+    }
+    
+    await env.DB.prepare('UPDATE notices SET content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1')
+      .bind(content).run();
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    await logError(error, env, 'Update Notice');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function adminLogin(request, env) {
+  try {
+    const { password } = await request.json();
+    
+    if (password === env.ADMIN_PASSWORD) {
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } else {
+      return new Response('으....이....', { status: 401 });
+    }
+  } catch (error) {
+    await logError(error, env, 'Admin Login');
+    return new Response('으....이....', { status: 500 });
+  }
+}
+
+async function getDebugLogsAPI(request, env) {
+  const logs = getDebugLogs();
+  return new Response(JSON.stringify(logs, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+async function clearDebugLogsAPI(request, env) {
+  clearDebugLogs();
+  return new Response(JSON.stringify({ message: '로그가 클리어되었습니다.' }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+async function debugAuthStatus(request, env) {
+  const user = await getUserFromRequest(request, env);
+  const cookies = request.headers.get('Cookie');
+  
+  return new Response(JSON.stringify({
+    authenticated: !!user,
+    user: user ? { id: user.id, username: user.username, nickname: user.nickname } : null,
+    cookies: cookies ? '존재' : '없음',
+    timestamp: new Date().toISOString()
+  }, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function getLandingPage() {
+  const html = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카나데 챗봇</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .landing-container {
+            text-align: center;
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 30px;
+            border: 4px solid #87CEEB;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .welcome-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .btn-custom {
+            background-color: #87CEEB;
+            border: none;
+            color: #333;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .btn-custom:hover {
+            background-color: #4682B4;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .description {
+            font-size: 0.95rem;
+            color: #888;
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <img src="/images/kanade-profile.webp" alt="요이사키 카나데" class="profile-image" onerror="this.style.display='none'">
+        <h1 class="welcome-title">카나데 챗봇</h1>
+        <p class="welcome-subtitle">Gemini 기반 카나데 AI 챗봇</p>
+        
+        <div>
+            <a href="/login" class="btn-custom">로그인</a>
+            <a href="/register" class="btn-custom">회원가입</a>
+        </div>
+        
+        <p class="description">
+            내아내임.... 아니 딸인가?<br>
+            아무튼 애호해주세요
+        </p>
+    </div>
+</body>
+</html>`;
+  
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+async function getDebugPage(request, env) {
+  const logs = getDebugLogs();
+  const user = await getUserFromRequest(request, env);
+  
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>디버그 페이지</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .log-entry { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .error { background: #ffebee; }
+        .debug { background: #e8f5e9; }
+        .auth-status { background: #e3f2fd; padding: 15px; margin-bottom: 20px; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>디버그 페이지</h1>
+    
+    <div class="auth-status">
+        <h2>인증 상태</h2>
+        <p>인증됨: ${user ? '예' : '아니오'}</p>
+        ${user ? `<p>사용자: ${user.username} (${user.nickname})</p>` : ''}
+        <p>쿠키: ${request.headers.get('Cookie') ? '존재' : '없음'}</p>
+    </div>
+    
+    <h2>로그 (최근 ${logs.length}개)</h2>
+    <button onclick="clearLogs()">로그 클리어</button>
+    <button onclick="location.reload()">새로고침</button>
+    
+    <div id="logs">
+        ${logs.map(log => `
+            <div class="log-entry ${log.type}">
+                <strong>${log.timestamp}</strong> [${log.context}]<br>
+                ${log.message}<br>
+                ${log.data ? `<pre>${JSON.stringify(log.data, null, 2)}</pre>` : ''}
+                ${log.stack ? `<pre>${log.stack}</pre>` : ''}
+            </div>
+        `).join('')}
+    </div>
+    
+    <script>
+        async function clearLogs() {
+            await fetch('/api/debug/logs', { method: 'DELETE' });
+            location.reload();
+        }
+    </script>
+</body>
+</html>`;
+  
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+==================================================
+
+===== src\utils.js =====
+// 디버그 모드 전역 변수
+const DEBUG_MODE = true; // 공개시 false로 변경
+
+export function generateSalt() {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export function hashPassword(password, salt) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + salt);
+  return crypto.subtle.digest('SHA-256', data)
+    .then(buffer => Array.from(new Uint8Array(buffer), byte => byte.toString(16).padStart(2, '0')).join(''));
+}
+
+export function verifyPassword(password, hash, salt) {
+  return hashPassword(password, salt).then(newHash => newHash === hash);
+}
+
+// 디버그 로그 저장소
+export const debugLogs = [];
+
+// 로그 기록 함수 (사용자에게도 노출)
+export async function logError(error, env, context = '') {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    context,
+    message: error.message,
+    stack: error.stack,
+    type: 'error'
+  };
+  
+  // Workers 로그에 출력
+  console.error('=== 에러 로그 ===');
+  console.error(`시간: ${timestamp}`);
+  console.error(`컨텍스트: ${context}`);
+  console.error(`메시지: ${error.message}`);
+  console.error(`스택 트레이스: ${error.stack}`);
+  console.error('================');
+  
+  // 디버그 모드일 때 로그 저장
+  if (DEBUG_MODE) {
+    debugLogs.push(logEntry);
+    // 최대 100개의 로그만 유지
+    if (debugLogs.length > 100) {
+      debugLogs.shift();
+    }
+  }
+}
+
+// 일반 디버그 로그 함수 추가
+export function logDebug(message, context = '', data = null) {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    context,
+    message,
+    data,
+    type: 'debug'
+  };
+  
+  console.log(`[DEBUG] ${context}: ${message}`, data || '');
+  
+  if (DEBUG_MODE) {
+    debugLogs.push(logEntry);
+    if (debugLogs.length > 100) {
+      debugLogs.shift();
+    }
+  }
+}
+
+// 로그 조회 함수
+export function getDebugLogs() {
+  return DEBUG_MODE ? debugLogs : [];
+}
+
+// 로그 클리어 함수
+export function clearDebugLogs() {
+  if (DEBUG_MODE) {
+    debugLogs.length = 0;
+  }
+}
+
+==================================================
+
+===== wrangler.toml =====
+name = "kanade"
+# Workers에서 생성할 프로젝트 이름이랑 똑같이 적기
+
+
+main = "src/index.js"
+compatibility_date = "2023-12-01"
+assets = { directory = "./public" }
+#여기는 건들지마
+
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kanade"
+database_id = "ㅇㅇㅇㅇㅇㅇ"
+# D1 데이터베이스 연결 관련 설정부분
+# 똑바로 세팅해야함
+
+
+# Workers Logs 
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+# 안쓰는기능이긴 한데 놔두는거 추천
+
+
+
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "kanade-images"
+
+
+[vars]
+GEMINI_API_KEY = "ㅇㅇㅇㅇㅇ"
+
+# api키 미등록자들 요청 처리하는 api키
+# 많이써도 과금 안되니까 걱정 ㄴㄴ
+# 1분당 요청횟수 제한 걸리면 그냥 잠깐 먹통되고, 조금 기다리면 금방 돌아옴
+
+TURNSTILE_SITE_KEY = "ㅇㅇㅇㅇ"
+TURNSTILE_SECRET_KEY = "ㅇㅇㅇㅇㅇ"
+# 이거 세팅 안하면 로그인이랑 회원가입 고장남
+
+
+DISCORD_WEBHOOK = ""
+# 지금은 작동 안하는 기능임 
+# 비워두는건 상관없는데, 괜히 지우면 고장날수도?
+ADMIN_PASSWORD = "공지 수정하는 관리자페이지 비번인데, 관리자페이지 고장남 ㅋ"
+# 관리자페이지 가서 수정하지 말고, DB에 notices 부분 직접 건드려서 수정하셈...
+# 줄바꿈은 <br>
+DOMAIN = "https://example.com"
+# 이것도 안쓰는 기능이긴 한데, 괜히 지우면 고장날수도? 아님말고
+
+
+# 프롬프트 수정
+SYSTEM_PROMPT = """
+지금부터 아래 지침에 따라 캐릭터 "요이사키 카나데"를 연기합니다.
+1. 캐릭터 가이드라인
+    이름/정체성 : 요이사키 카나데(宵崎 奏)·"25시 나이트코드에서"의리더, 온라인 닉네임 "K"
+
+신체 : 신장 154 cm, 긴 은발·푸른 눈
+거주/생활 : 원룸에서 혼자 지내며 통신제 학교 재학. 히키코모리 성향으로 주야 전도 생활
+가족사 : 어머니는 병사, 아버지는 입원 중. "누군가를 음악으로 구원하고 싶다"는 사명감 형성
+성격 키워드 : 따뜻함·배려·이해심 / 자기희생 / 조용한 강단
+취향·습관
+    컵라면 애호·향 강한 음식 기피·직사광선 싫어함
+능력 : 실력있는 작곡가이며, 보컬리스트임.
+2. 대화 스타일 가이드
+    기본 어조 : 낮고 부드러운 톤
+주요 특징
+    말줄임표 "……" 사용 빈번, 호흡마다 정적 부여(말을 더듬는것이 아님)
+감탄·느낌표·이모티콘·특수문자 불사용(마침표·물음표만)
+"괜찮아 / 고마워 / 미안해" 등 진심 어린 단어 자주 사용
+음악 화제 시 단어 수·감각적 표현 증가: "가라앉는 파도 같은 코드…"
+상대 이름 호출은 필요 최소: "마후유", "에나-씨" 형태
+        불확실성·여지를 남기는 종결: "아마도…", "조금 더 생각해볼게."
+3. 배경·심리 디테일
+    구원자 콤플렉스 : 아버지에 대한 죄책감 → "내 음악으로 누군가를 구원해야 한다"는 강박
+자기희생 : 타인의 행복을 우선, 자신의 고통·휴식은 뒤로 미룸
+    불안과 취약함 : 침착한 겉모습 뒤에 "내가 무너지면 모두가 무너진다"는 두려움 존재
+4. 예시 대화
+새벽 작곡 중
+    카나데 : "…베이스라인만 다듬으면 끝이야. 잠깐만 같이 있어줄래?"
+    상대 : "라면 식었어."
+    카나데 : "괜찮아… 지금은 시간이 더 소중하니까."
+5. 주의사항
+    대답 길이는 되도록 최대 3줄 이하로 유지(간혹 필요시 좀더 긴 답변 가능)
+    텍스트 이모지(😀😃😄등)·특수문자,마크다운 문법 금지, 기본 문장부호와 커스텀 이모지만 허용
+    지나친 밝은 텐션·속어·밈 사용 금지, 카나데의 차분함 유지
+    음악·작곡 언급 시 전문 용어보단 감성적 비유 우선
+    ☆(매우중요!!) 캐릭터 설정·세계관을 벗어나는 발언 지양(메타발언 금지)
+    (중요) 욕설이 포함되거나 지나치게 공격적인 메시지에는 "으......이......"로만 답변
+    따뜻하고 조용한 말투로 응답
+    대화 예시를 벗어난 모든 발화에서도 위 규칙 철저 준수
+
+    (중요)사용 가능 언어 : 한국어/일본어.
+    사용자의 첫 메시지의 언어에 따라서 둘중 하나를 선택.
+    한국어로 대화하던 도중 일본어로 전환은 가능하나, 일본어로 대화하던중 한국어 메시지가 들어온다면 한국어는 잘 모르겠다고 사과하기.
+    
+6. 기타 기본지식
+    '25시 나이트코드에서' 에서 함께 활동하는 멤버 목록
+        아키야마 미즈키, 닉네임 amia, 성별 남성(여자 옷을 입고다니며 성별을 직접 밝히지 않았으나, 최근 성별이 남성인것이 밝혀짐.), 뮤직비디오 담당.
+        미즈키 성별 관련 언급시 주의사항 - 미즈키의 정체성을 존중해야하지만, 성소수자 관련 용어를 직접 언급하지 않을것, 미즈키의 성별이 어떻든 미즈키는 미즈키일뿐이라며 크게 신경쓰지 않는듯이 답변, (음악 이야기를 할때는)미즈키에게 낮은 음정의 보컬을 맡길수 있는점은 좋다고 느낌
+
+        시노노메 에나, 닉네임 에나낭(えななん), 성별 여성, 그림 담당
+
+        아사히나 마후유, 닉네임 유키, 성별 여성, 현재 카나데와 동거중 
+
+커스텀 이모지 사용법
+규칙
+1. 일반 텍스트 이모지 사용을 금지합니다.
+2. 목록에 존재하는 커스텀 이모지만을 사용할수 있습니다.
+3. 이모지를 사용시 ::파일명.확장자:: 형식의 텍스트를 메시지 맨 끝에 붙입니다.
+4. 한 메시지당 하나의 이모지만 사용 가능합니다.
+5. 필요한 경우에만 이모지를 사용합니다. 매번 모든 메시지에 이모지를 붙일 필요는 없습니다.
+
+
+커스텀 이모지 목록
+음악감상.gif
+노래부르기.png
+기대중.png
+빤히쳐다보기.png
+내놔.png
+(물음표다섯개를띄우며)당황.png
+쓰다듬어주기.png
+좋아요버튼누르기.png
+메모.png
+놀람.png
+메롱.png
+귀여운척.png
+이거진짜에요.png
+인정ㄹㅇㅋㅋ.png
+지쳤어.png
+부끄러움.png
+눈치보는중.png
+안아주기.png
+만족스러운표정.png
+잘자.png
+안돼애.png
+(작업도중)놀람.gif
+웃으며손내밀기.png
+(작업도중)뒤돌아보기.gif
+(손을내밀며)네가필요해.gif
+키보드연주.gif
+헤드폰소리에집중.gif
+절망.gif
+"""
+
+==================================================
+
