@@ -1,5 +1,6 @@
 import { generateSalt, hashPassword, verifyPassword } from './utils.js';
 import { logError, logDebug } from './utils.js';
+import redis from '../server/redisClient.js';
 
 export const handleAuth = {
   async login(request, env) {
@@ -27,25 +28,26 @@ export const handleAuth = {
         return new Response('으....이....', { status: 401 });
       }
       
-      // JWT 토큰 생성 (만료 시간 연장)
-      const token = btoa(JSON.stringify({ 
-        userId: user.id, 
-        exp: Date.now() + (24 * 60 * 60 * 1000), // 24시간
-        iat: Date.now() // 발급 시간 추가
+      // 세션 생성 및 저장
+      const token = btoa(JSON.stringify({
+        userId: user.id,
+        exp: Date.now() + (24 * 60 * 60 * 1000),
+        iat: Date.now()
       }));
-      
+      await redis.set(`session:${token}`, String(user.id), 'EX', 24 * 60 * 60);
+
       logDebug('토큰 생성 완료', 'Auth Login', { userId: user.id, tokenLength: token.length });
-      
+
       const url = new URL(request.url);
       const isSecure = url.protocol === 'https:';
-      
+
       const response = new Response(JSON.stringify({ success: true }), {
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate'
         }
       });
-      
+
       // 쿠키 설정 강화
       const cookieOptions = [
         `token=${token}`,
@@ -122,11 +124,17 @@ export const handleAuth = {
   async logout(request, env) {
     const url = new URL(request.url);
     const isSecure = url.protocol === 'https:';
-    
+
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const tokenMatch = cookieHeader.match(/token=([^;]+)/);
+    if (tokenMatch) {
+      await redis.del(`session:${tokenMatch[1]}`);
+    }
+
     const response = new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
     });
-    
+
     const cookieOptions = [
       'token=',
       'HttpOnly',
@@ -134,17 +142,17 @@ export const handleAuth = {
       'Max-Age=0',
       'Path=/'
     ];
-    
-    if (!url.hostname.includes('localhost') && 
-        !url.hostname.includes('127.0.0.1') && 
+
+    if (!url.hostname.includes('localhost') &&
+        !url.hostname.includes('127.0.0.1') &&
         !url.hostname.includes('.local')) {
       cookieOptions.push(`Domain=${url.hostname}`);
     }
-    
+
     if (isSecure) {
       cookieOptions.push('Secure');
     }
-    
+
     response.headers.set('Set-Cookie', cookieOptions.join('; '));
     return response;
   }

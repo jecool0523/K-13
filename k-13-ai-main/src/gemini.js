@@ -1,4 +1,5 @@
 import { logError } from './utils.js';
+import redis from '../server/redisClient.js';
 
 export async function handleChat(request, env) {
   try {
@@ -160,10 +161,14 @@ async function getUserFromToken(request, env) {
   
   const tokenMatch = cookies.match(/token=([^;]+)/);
   if (!tokenMatch) return null;
-  
+
   try {
     const tokenData = JSON.parse(atob(tokenMatch[1]));
     if (tokenData.exp < Date.now()) {
+        return null;
+    }
+    const sessionExists = await redis.get(`session:${tokenMatch[1]}`);
+    if (!sessionExists) {
         return null;
     }
     const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(tokenData.userId).first();

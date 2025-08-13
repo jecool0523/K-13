@@ -1,6 +1,7 @@
 import { handleAuth } from './auth.js';
 import { handleChat } from './gemini.js';
 import { logError, logDebug, getDebugLogs, clearDebugLogs, generateSalt, hashPassword, verifyPassword } from './utils.js';
+import redis from '../server/redisClient.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -325,6 +326,11 @@ async function getUserFromRequest(request, env) {
     
     // 토큰 만료 확인
     if (tokenData.exp < Date.now()) {
+      return null;
+    }
+
+    const sessionExists = await redis.get(`session:${tokenMatch[1]}`);
+    if (!sessionExists) {
       return null;
     }
     

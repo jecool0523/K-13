@@ -5,17 +5,16 @@ const socketIo = require('socket.io');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const Redis = require('ioredis');
 const cors = require('cors');
 require('dotenv').config();
 const fs = require('fs');
 const toml = require('toml');
 const { v4: uuidv4 } = require('uuid');
+const redis = require('../server/redisClient');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
@@ -136,6 +135,19 @@ app.get('/api/chatlog', async (req, res) => {
   }
 });
 
+// 전체 대화 기록 조회
+app.get('/api/conversations', async (req, res) => {
+  const { token } = req.query;
+  try {
+    const { id } = jwt.verify(token, JWT_SECRET);
+    const convKey = `conversations:${id}`;
+    const messages = await redis.lrange(convKey, 0, -1);
+    res.json({ messages: messages.map(JSON.parse) });
+  } catch {
+    res.status(401).json({ error: '인증 실패' });
+  }
+});
+
 // 비밀번호 변경
 app.post('/api/change-password', async (req, res) => {
   const { token, currentPassword, newPassword } = req.body;
@@ -196,6 +208,8 @@ io.on('connection', (socket) => {
     const aiLog = { role: 'ai', message: aiReply, time: Date.now(), model };
     const sessionKey = `chatlog:${socket.id_}:${socket.sessionId}`;
     await redis.rpush(sessionKey, JSON.stringify(log), JSON.stringify(aiLog));
+    const convKey = `conversations:${socket.id_}`;
+    await redis.rpush(convKey, JSON.stringify(log), JSON.stringify(aiLog));
     // 세션 미리보기(최초 메시지) 갱신
     const sessions = await redis.lrange(`chatlog:${socket.id_}:sessions`, 0, -1);
     if (sessions.length > 0) {
